@@ -1,0 +1,179 @@
+integrations: "all"
+
+actions:
+  default_server:
+    type: status
+    url: "http://127.0.0.1"
+    status: 200
+  default_server_disabled:
+    type: status
+    url: "http://127.0.0.1"
+    status: 403
+    config:
+      DISABLE_DEFAULT_SERVER: "yes"
+  redirect_http_https:
+    type: status
+    url: "http://www.example.com"
+    status: 301
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REDIRECT_HTTP_TO_HTTPS: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  auto_redirect_http_https:
+    type: status
+    url: "http://www.example.com"
+    status: 301
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  auto_redirect_http_https_disabled:
+    type: status
+    url: "http://www.example.com"
+    status: 200
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      AUTO_REDIRECT_HTTP_TO_HTTPS: "no"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  allowed_methods:
+    type: status
+    url: "http://www.example.com"
+    method: "OPTIONS"
+    status: 405
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  tweaked_allowed_methods:
+    type: status
+    url: "http://www.example.com"
+    method: "POST"
+    status: 405
+    config:
+      ALLOWED_METHODS: "GET|HEAD"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  large_body_size:
+    type: string
+    url: "http://www.example.com"
+    method: "POST"
+    body_length: 5242881
+    string: "Hello World!"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  tweaked_large_body_size:
+    type: status
+    url: "http://www.example.com"
+    method: "POST"
+    body_length: 5242881
+    status: 413
+    config:
+      MAX_CLIENT_SIZE: "5m"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  serve_files_deactivated:
+    type: header
+    url: "http://www.example.com/logo.png"
+    header_name: "Content-Type"
+    header_rx: "^text/html"
+    config:
+      SERVE_FILES: "no"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  tweaked_ssl_protocols:
+    type: ssl
+    url: "https://www.example.com"
+    verify_ssl: false
+    ssl_protocols:
+      - "TLSv1.3"
+    config:
+      SSL_PROTOCOLS: "TLSv1.3"
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  http2_disabled:
+    type: status
+    url: "https://www.example.com"
+    verify_ssl: false
+    http2: true
+    config:
+      HTTP2: "no"
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  listen_http_disabled:
+    type: status
+    url: "http://www.example.com"
+    config:
+      LISTEN_HTTP: "no"
+  # TODO: make open_file_cache tests
+  tweaked_deny_http_status:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    config:
+      DENY_HTTP_STATUS: "444"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

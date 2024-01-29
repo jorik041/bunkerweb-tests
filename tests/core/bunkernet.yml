@@ -1,0 +1,65 @@
+integrations: "all"
+
+actions:
+  setup:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 403
+  check_registered:
+    type: status
+    url: "http://custom-api:8000/bunkernet/instance_id"
+    delay: 0.0
+    status: 200
+  check_report:
+    type: string
+    url: "http://custom-api:8000/bunkernet/report_num"
+    delay: 0.0
+    string: "0"
+  global_403:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 403
+    headers:
+      X-Forwarded-For: "8.0.0.3"
+  check_report_second:
+    type: string
+    url: "http://custom-api:8000/bunkernet/report_num"
+    delay: 0.0
+    string: "1"
+  reset_api:
+    type: status
+    url: "http://custom-api:8000/bunkernet/reset"
+    method: POST
+    delay: 0.0
+    status: 200
+  setup_deactivated:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 403
+    headers:
+      X-Forwarded-For: "8.0.0.3"
+    config:
+      USE_BUNKERNET: "no"
+  check_registered_deactivated:
+    type: status
+    url: "http://custom-api:8000/bunkernet/instance_id"
+    delay: 0.0
+    status: 404
+    config:
+      USE_BUNKERNET: "no"
+  check_report_deactivated:
+    type: string
+    url: "http://custom-api:8000/bunkernet/report_num"
+    delay: 0.0
+    string: "0"
+    config:
+      USE_BUNKERNET: "no"
+
+config:
+  USE_BUNKERNET: "yes"
+  BUNKERNET_SERVER: "http://custom-api:8000/bunkernet"
+  USE_REAL_IP: "yes"
+  REAL_IP_FROM: "0.0.0.0/0"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

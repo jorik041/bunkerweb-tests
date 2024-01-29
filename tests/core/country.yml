@@ -1,0 +1,42 @@
+integrations: "all"
+
+actions:
+  blacklist_good:
+    type: string
+    url: "http://www.example.com"
+    string: "Hello World!"
+    headers:
+      X-Forwarded-For: "2.0.0.3"
+    config:
+      BLACKLIST_COUNTRY: "US"
+  blacklist_bad:
+    type: status
+    url: "http://www.example.com"
+    status: 403
+    headers:
+      X-Forwarded-For: "8.0.0.3"
+    config:
+      BLACKLIST_COUNTRY: "US"
+  whitelist_good:
+    type: string
+    url: "http://www.example.com"
+    string: "Hello World!"
+    headers:
+      X-Forwarded-For: "2.0.0.3"
+    config:
+      WHITELIST_COUNTRY: "FR"
+  whitelist_bad:
+    type: status
+    url: "http://www.example.com"
+    status: 403
+    headers:
+      X-Forwarded-For: "8.0.0.3"
+    config:
+      WHITELIST_COUNTRY: "FR"
+
+config:
+  USE_REAL_IP: "yes"
+  REAL_IP_FROM: "0.0.0.0/0"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

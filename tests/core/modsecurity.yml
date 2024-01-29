@@ -1,0 +1,25 @@
+integrations: "all"
+
+actions:
+  activated:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 403
+  deactivated:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 200
+    config:
+      USE_MODSECURITY: "no"
+  deactivated_crs:
+    type: status
+    url: "http://www.example.com/?id=/etc/passwd"
+    status: 200
+    config:
+      USE_MODSECURITY_CRS: "no"
+
+config:
+  USE_MODSECURITY: "yes"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

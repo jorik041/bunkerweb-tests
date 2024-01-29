@@ -1,0 +1,124 @@
+version: "3.5"
+
+services:
+  bunkerweb:
+    image: bunkerweb-tests
+    pull_policy: never
+    container_name: bunkerweb
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/www/html/index.php:/var/www/html/index.php
+      - /var/www/html/index.php:/var/www/html/www.example.com/index.php
+      - /var/www/html/index.php:/var/www/html/app1.example.com/index.php
+      - /var/www/html/index.php:/var/www/html/app2.example.com/index.php
+      - /var/www/html/index.php:/var/www/html/app3.example.com/index.php
+      - /var/www/html/logo.png:/var/www/html/logo.png
+      - /var/www/html/logo.png:/var/www/html/www.example.com/logo.png
+      - /var/www/html/logo.png:/var/www/html/app1.example.com/logo.png
+      - /var/www/html/logo.png:/var/www/html/app2.example.com/logo.png
+      - /var/www/html/logo.png:/var/www/html/app3.example.com/logo.png
+    environment:
+      API_WHITELIST_IP: "127.0.0.0/8 10.20.30.0/24"
+      AUTOCONF_MODE: "yes"
+    labels:
+      - "bunkerweb.INSTANCE=yes"
+    networks:
+      bw-universe:
+        ipv4_address: 10.20.30.254
+        aliases:
+          - bunkerweb
+      bw-services:
+        aliases:
+          - bunkerweb
+
+  bw-autoconf:
+    image: bw-autoconf-tests
+    pull_policy: never
+    container_name: bw-autoconf
+    depends_on:
+      - bunkerweb
+      - bw-docker
+    environment:
+      DOCKER_HOST: "tcp://bw-docker:2375"
+      AUTOCONF_MODE: "yes"
+    volumes:
+      - /etc/bunkerweb/config.yml:/etc/bunkerweb/config.yml:ro
+    networks:
+      bw-universe:
+        aliases:
+          - bw-autoconf
+      bw-docker:
+        aliases:
+          - bw-autoconf
+
+  bw-core:
+    image: bw-core-tests
+    pull_policy: never
+    container_name: bw-core
+    depends_on:
+      - bunkerweb
+    ports:
+      - "1337:1337"
+    volumes:
+      - bw-data:/data
+      - /etc/bunkerweb/config.yml:/etc/bunkerweb/config.yml:ro
+    networks:
+      bw-universe:
+        aliases:
+          - bw-core
+
+  bw-php:
+    image: php:fpm-alpine3.18
+    volumes:
+      - /var/www/html:/app
+    networks:
+      bw-services:
+        aliases:
+          - bw-php
+
+  bw-docker:
+    image: tecnativa/docker-socket-proxy:nightly
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      CONTAINERS: "1"
+      LOG_LEVEL: "warning"
+    networks:
+      bw-docker:
+        aliases:
+          - bw-docker
+
+  dnsmasq:
+    image: strm/dnsmasq
+    container_name: dnsmasq
+    volumes:
+      - ./misc/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./misc/dnsmasq.hosts:/etc/dnsmasq.hosts
+    networks:
+      bw-universe:
+        ipv4_address: 10.20.30.20
+        aliases:
+          - dnsmasq
+    cap_add:
+      - NET_ADMIN
+
+volumes:
+  bw-data:
+
+networks:
+  bw-universe:
+    name: bw-universe
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.20.30.0/24
+  bw-services:
+    name: bw-services
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+  bw-docker:
+    name: bw-docker

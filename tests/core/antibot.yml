@@ -1,0 +1,26 @@
+integrations: "all"
+
+actions:
+  javascript:
+    type: status
+    url: "http://www.example.com"
+    status: 302
+    config:
+      USE_ANTIBOT: "javascript"
+  captcha:
+    type: xpath
+    url: "http://www.example.com"
+    xpath: "//input[@name='captcha']"
+  custom_endpoint:
+    type: path
+    url: "http://www.example.com"
+    path: "/custom"
+    follow_redirects: true
+    config:
+      ANTIBOT_URI: "/custom"
+
+config:
+  USE_ANTIBOT: "captcha"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

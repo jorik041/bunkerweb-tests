@@ -1,0 +1,145 @@
+name: Core test (REUSABLE)
+
+on:
+  workflow_call:
+    inputs:
+      TEST:
+        required: true
+        type: string
+      RELEASE:
+        required: true
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      integration: ${{ steps.setup.outputs.integration }}
+      architecture: ${{ steps.setup.outputs.architecture }}
+      runs_on: ${{ steps.setup.outputs.runs_on }}
+      specs: ${{ steps.setup.outputs.specs }}
+      test: ${{ steps.setup.outputs.test }}
+    steps:
+      - name: Set output variables
+        id: setup
+        run: |
+          echo "integration=$(echo "${{ inputs.TEST }}" | cut -d ";" -f 1)" >> $GITHUB_OUTPUT
+          echo "architecture=$(echo "${{ inputs.TEST }}" | cut -d ";" -f 2)" >> $GITHUB_OUTPUT
+          export RUNS_ON="$(echo "${{ inputs.TEST }}" | cut -d ";" -f 3)"
+          export TEST="$(echo "${{ inputs.TEST }}" | cut -d ";" -f 4-)"
+          export SPECS=""
+          if [[ $TEST == \[* ]]; then
+            export SPECS="$RUNS_ON"
+            export RUNS_ON="$(echo "$TEST" | cut -d ";" -f 1)"
+            export TEST="$(echo "$TEST" | cut -d ";" -f 2-)"
+          fi
+          echo "runs_on=$RUNS_ON" >> $GITHUB_OUTPUT
+          echo "specs=$SPECS" >> $GITHUB_OUTPUT
+          echo "test=$TEST" >> $GITHUB_OUTPUT
+
+  test:
+    needs: setup
+    runs-on: ${{ fromJSON(needs.setup.outputs.runs_on) }}
+    steps:
+      # Prepare
+      - name: Checkout source code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - name: Set up Python 3.11
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+        with:
+          python-version: "3.11"
+      - name: Install Firefox manually and dependencies
+        run: |
+          sudo apt purge -y firefox
+          sudo add-apt-repository ppa:mozillateam/ppa -y
+          echo '
+          Package: *
+          Pin: release o=LP-PPA-mozillateam
+          Pin-Priority: 1001
+          ' | sudo tee /etc/apt/preferences.d/mozilla-firefox
+          sudo apt update
+          sudo apt install --no-install-recommends -y openssl git nodejs tar bzip2 wget curl grep libx11-xcb1 libappindicator3-1 libasound2 libdbus-glib-1-2 libxtst6 libxt6 php-fpm unzip firefox
+      - name: Download geckodriver
+        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 20
+          command: |
+            GECKODRIVER_VERSION=`curl -i https://github.com/mozilla/geckodriver/releases/latest | grep -Po 'v[0-9]+\.[0-9]+\.[0-9]+'` && \
+            wget -O geckodriver.tar.gz -w 5 https://github.com/mozilla/geckodriver/releases/download/$GECKODRIVER_VERSION/geckodriver-$GECKODRIVER_VERSION-linux64.tar.gz
+            sudo tar -xzf geckodriver.tar.gz -C /usr/local/bin
+            sudo chmod +x /usr/local/bin/geckodriver
+            rm -f geckodriver.tar.gz
+      - name: Login to ghcr
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull BW image
+        if: ${{ needs.setup.outputs.integration != 'Linux' }}
+        run: docker pull ghcr.io/bunkerity/bunkerweb-tests:${{ inputs.RELEASE }} && docker tag ghcr.io/bunkerity/bunkerweb-tests:${{ inputs.RELEASE }} bunkerweb-tests
+      - name: Pull Core image
+        if: ${{ needs.setup.outputs.integration != 'Linux' }}
+        run: docker pull ghcr.io/bunkerity/core-tests:${{ inputs.RELEASE }} && docker tag ghcr.io/bunkerity/core-tests:${{ inputs.RELEASE }} bw-core-tests
+      - name: Pull Autoconf image
+        if: ${{ needs.setup.outputs.integration == 'Autoconf' }}
+        run: docker pull ghcr.io/bunkerity/autoconf-tests:${{ inputs.RELEASE }} && docker tag ghcr.io/bunkerity/autoconf-tests:${{ inputs.RELEASE }} bw-autoconf-tests
+      - name: Pull BW linux ubuntu test image # TODO: figure this out for other architectures and specs
+        if: ${{ needs.setup.outputs.integration == 'Linux' }}
+        run: docker pull ghcr.io/bunkerity/ubuntu-tests:${{ inputs.RELEASE }} && docker tag ghcr.io/bunkerity/ubuntu-tests:${{ inputs.RELEASE }} bw-linux-tests
+      - name: Copy deb file to host # TODO: figure this out for other architectures and specs
+        if: ${{ needs.setup.outputs.integration == 'Linux' }}
+        run: |
+          container_id=$(docker create "bw-linux-tests")
+          docker cp "$container_id:/opt/bunkerweb_${{ inputs.RELEASE }}-1_amd64.deb" "/tmp/bunkerweb.deb"
+          docker rm "$container_id"
+      - name: Install Nginx
+        if: ${{ needs.setup.outputs.integration == 'Linux' }}
+        run: |
+          sudo apt install -y gnupg2 ca-certificates lsb-release ubuntu-keyring
+          curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" | sudo tee /etc/apt/sources.list.d/nginx.list
+          sudo apt update
+          sudo apt install -y nginx=1.24.0-1~jammy
+      - name: Fix version without a starting number
+        if: ${{ needs.setup.outputs.integration == 'Linux' }} && (inputs.RELEASE == 'testing' || inputs.RELEASE == 'dev' || inputs.RELEASE == 'v2')
+        run: echo "force-bad-version" | sudo tee -a /etc/dpkg/dpkg.cfg
+      - name: Setup configuration files
+        run: |
+          # Misc
+          echo "127.0.0.1 www.example.com" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 app1.example.com" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 app2.example.com" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 app3.example.com" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 custom-api" | sudo tee -a /etc/hosts
+          sudo chmod +x ./tests/scripts/*.sh
+          # Create /etc/bunkerweb directory
+          sudo mkdir -p /etc/bunkerweb /var/www/html
+          sudo cp tests/misc/index.php misc/logo.png /var/www/html/
+          sudo chown -R root:101 /etc/bunkerweb
+          sudo chown -R 33:101 /var/www/html
+          sudo chmod -R 777 /etc/bunkerweb /var/www/html
+          sudo systemctl stop systemd-resolved
+          sudo systemctl disable systemd-resolved
+          sudo systemctl mask systemd-resolved
+      - name: Setup php configuration
+        if: ${{ needs.setup.outputs.integration == 'Linux' }}
+        run: |
+          sudo cp ./tests/www-deb.conf /etc/php/8.1/fpm/pool.d/www.conf
+          sudo systemctl stop php8.1-fpm
+          sudo systemctl start php8.1-fpm
+      - name: Setup dnsmasq
+        if: ${{ needs.setup.outputs.integration == 'Linux' }}
+        run: |
+          sudo apt install -y dnsmasq-base
+          sudo cp ./tests/misc/dnsmasq.conf /etc/dnsmasq.conf
+          sudo cp ./tests/misc/dnsmasq.hosts /etc/dnsmasq.hosts
+          sudo dnsmasq
+      - name: Install Python dependencies
+        run: |
+          pip install --require-hashes -r src/deps/requirements.txt
+          pip install --require-hashes -r tests/requirements-parse.txt
+          pip install --require-hashes -r tests/requirements.txt
+      - name: Run test
+        run: ./tests/scripts/run.sh "${{ needs.setup.outputs.integration }}" "core" "${{ inputs.RELEASE }}" "${{ needs.setup.outputs.test }}"

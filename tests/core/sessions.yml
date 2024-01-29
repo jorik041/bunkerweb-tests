@@ -1,0 +1,14 @@
+integrations: "all"
+
+actions:
+  # TODO: see to test the random values
+  manual_name:
+    type: "cookie"
+    url: "http://www.example.com"
+    cookie_name: "test"
+    cookie_rx: "^.*$"
+    config:
+      SESSIONS_NAME: "test"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

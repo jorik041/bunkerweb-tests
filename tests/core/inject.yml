@@ -1,0 +1,20 @@
+integrations: "all"
+
+actions:
+  activated:
+    type: string
+    url: "http://www.example.com"
+    string: "BunkerWeb Forever!"
+    config:
+      INJECT_BODY: "BunkerWeb Forever!"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

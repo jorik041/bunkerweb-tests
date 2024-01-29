@@ -1,0 +1,41 @@
+staging:
+  Linux:
+    x86_64:
+      el/8: "TODO"
+      fedora/38: "TODO"
+    amd64:
+      ubuntu/jammy: "['ubuntu-22.04']"
+      debian/bullseye: "TODO"
+    aarch64:
+      el/8: "TODO"
+      fedora/38: "TODO"
+    arm64:
+      ubuntu/jammy: "TODO"
+      debian/bullseye: "TODO"
+  Docker:
+    386: "TODO"
+    amd64: "['ubuntu-22.04']"
+    arm/v7: "TODO"
+    arm64: "TODO"
+  Autoconf:
+    386: "TODO"
+    amd64: "['ubuntu-22.04']"
+    arm/v7: "TODO"
+    arm64: "TODO"
+  Swarm:
+    amd64: "TODO"
+  Kubernetes:
+    amd64: "TODO"
+
+dev:
+  Linux:
+    amd64:
+      ubuntu/jammy: "['ubuntu-22.04']"
+  Docker:
+    amd64: "['ubuntu-22.04']"
+  Autoconf:
+    amd64: "['ubuntu-22.04']"
+  Swarm:
+    amd64: "TODO"
+  Kubernetes:
+    amd64: "TODO"

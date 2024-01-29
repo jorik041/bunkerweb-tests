@@ -1,0 +1,27 @@
+global:
+  core_addr: http://bw-core:1337
+  core_token: S3cr3tT0k3n!
+
+core:
+  listen_addr: 127.0.0.1
+  listen_port: 1337
+  whitelist: 127.0.0.1
+  check_token: true
+  check_whitelist: true
+  database_uri: sqlite:////var/lib/bunkerweb/db.sqlite
+  bunkerweb_instances:
+    - 127.0.0.1
+
+  # BunkerWeb configuration
+  server_name: www.example.com
+  http_port: 80
+  https_port: 443
+  api_whitelist_ip: "127.0.0.0/8 10.20.30.0/24"
+  dns_resolvers: "10.20.30.20"
+  log_level: info
+  use_bunkernet: no
+  use_blacklist: no
+
+ui:
+  admin_username: admin
+  admin_password: P@ssw0rd

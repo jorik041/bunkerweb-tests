@@ -1,0 +1,75 @@
+integrations: "all"
+
+actions:
+  status_code:
+    type: status
+    url: "http://www.example.com"
+    status: 401
+  good_credentials:
+    type: string
+    url: "http://www.example.com"
+    auth:
+      - "bunkerity"
+      - "Secr3tP@ssw0rd"
+    string: "Hello World!"
+  bad_credentials:
+    type: status
+    url: "http://bunkerity:secret@www.example.com"
+    status: 401
+  custom_location:
+    type: string
+    url: "http://www.example.com"
+    string: "Hello World!"
+    config:
+      AUTH_BASIC_LOCATION: "/auth"
+  custom_location_status:
+    type: status
+    url: "http://www.example.com/auth"
+    status: 401
+    config:
+      AUTH_BASIC_LOCATION: "/auth"
+  custom_user_good_credentials:
+    type: string
+    url: "http://www.example.com"
+    auth:
+      - "admin"
+      - "Secr3tP@ssw0rd"
+    string: "Hello World!"
+    config:
+      AUTH_BASIC_USER: "admin"
+  custom_user_bad_credentials:
+    type: status
+    url: "http://www.example.com"
+    auth:
+      - "bunkerity"
+      - "Secr3tP@ssw0rd"
+    status: 401
+    config:
+      AUTH_BASIC_USER: "admin"
+  custom_password_good_credentials:
+    type: string
+    url: "http://www.example.com"
+    auth:
+      - "bunkerity"
+      - "secret"
+    string: "Hello World!"
+    config:
+      AUTH_BASIC_PASSWORD: "secret"
+  custom_password_bad_credentials:
+    type: status
+    url: "http://www.example.com"
+    auth:
+      - "bunkerity"
+      - "Secr3tP@ssw0rd"
+    status: 401
+    config:
+      AUTH_BASIC_PASSWORD: "secret"
+
+config:
+  USE_AUTH_BASIC: "yes"
+  AUTH_BASIC_LOCATION: "sitewide"
+  AUTH_BASIC_USER: "bunkerity"
+  AUTH_BASIC_PASSWORD: "Secr3tP@ssw0rd"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

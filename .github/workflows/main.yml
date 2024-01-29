@@ -1,0 +1,139 @@
+name: Automatic tests (DEV)
+
+permissions: read-all
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Containers
+  build-containers:
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image: [bunkerweb, core, autoconf] # TODO: Add ui when it's ready
+        include:
+          - image: bunkerweb
+            dockerfile: src/bw/Dockerfile
+          - image: core
+            dockerfile: src/core/Dockerfile
+          - image: autoconf
+            dockerfile: src/autoconf/Dockerfile
+          # - image: ui
+          #   dockerfile: src/ui/Dockerfile
+    uses: ./.github/workflows/container-build.yml
+    with:
+      RELEASE: v2
+      ARCH: linux/amd64
+      CACHE: true
+      IMAGE: ${{ matrix.image }}
+      DOCKERFILE: ${{ matrix.dockerfile }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USER }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+
+  # Build Linux packages
+  build-packages:
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        linux: [ubuntu]
+        include:
+          - linux: ubuntu
+            package: deb
+    uses: ./.github/workflows/linux-build.yml
+    with:
+      RELEASE: v2
+      LINUX: ${{ matrix.linux }}
+      PACKAGE: ${{ matrix.package }}
+      TEST: true
+      PLATFORMS: linux/amd64
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USER }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+
+  parse-tests-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - name: Set up Python 3.11
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+        with:
+          python-version: "3.11"
+      - id: parse_tests
+        name: Parse core tests
+        run: |
+          pip install --require-hashes -r tests/requirements-parse.txt
+          python3 tests/parse.py "core" --dev
+          echo "Linux_tests=$(cat /tmp/tests/Linux_tests.json || echo "[]")" >> $GITHUB_OUTPUT
+          echo "Docker_tests=$(cat /tmp/tests/Docker_tests.json || echo "[]")" >> $GITHUB_OUTPUT
+          echo "Autoconf_tests=$(cat /tmp/tests/Autoconf_tests.json || echo "[]")" >> $GITHUB_OUTPUT
+          echo "Swarm_tests=$(cat /tmp/tests/Swarm_tests.json || echo "[]")" >> $GITHUB_OUTPUT
+          echo "Kubernetes_tests=$(cat /tmp/tests/Kubernetes_tests.json || echo "[]")" >> $GITHUB_OUTPUT
+    outputs:
+      Linux_tests: ${{ steps.parse_tests.outputs.Linux_tests }}
+      Docker_tests: ${{ steps.parse_tests.outputs.Docker_tests }}
+      Autoconf_tests: ${{ steps.parse_tests.outputs.Autoconf_tests }}
+      Swarm_tests: ${{ steps.parse_tests.outputs.Swarm_tests }}
+      Kubernetes_tests: ${{ steps.parse_tests.outputs.Kubernetes_tests }}
+
+  run-Linux-tests-core:
+    needs: [build-packages, parse-tests-core]
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJson(needs.parse-tests-core.outputs.Linux_tests) }}
+    uses: ./.github/workflows/test-core.yml
+    with:
+      TEST: ${{ matrix.test }}
+      RELEASE: v2
+
+  run-Docker-tests-core:
+    needs: [build-containers, parse-tests-core]
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJson(needs.parse-tests-core.outputs.Docker_tests) }}
+    uses: ./.github/workflows/test-core.yml
+    with:
+      TEST: ${{ matrix.test }}
+      RELEASE: v2
+
+  run-Autoconf-tests-core:
+    needs: [build-containers, parse-tests-core]
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJson(needs.parse-tests-core.outputs.Autoconf_tests) }}
+    uses: ./.github/workflows/test-core.yml
+    with:
+      TEST: ${{ matrix.test }}
+      RELEASE: v2
+
+  # run-Swarm-tests-core:
+  #   needs: [build-containers, parse-tests-core]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test: ${{ fromJson(needs.parse-tests-core.outputs.Swarm_tests) }}
+  #   uses: ./.github/workflows/test-core.yml
+  #   with:
+  #     TEST: ${{ matrix.test }}
+  #     RELEASE: v2
+
+  # run-Kubernetes-tests-core:
+  #   needs: [build-containers, parse-tests-core]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test: ${{ fromJson(needs.parse-tests-core.outputs.Kubernetes_tests) }}
+  #   uses: ./.github/workflows/test-core.yml
+  #   with:
+  #     TEST: ${{ matrix.test }}
+  #     RELEASE: v2

@@ -1,0 +1,307 @@
+integrations: "all"
+
+actions:
+  check_server_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Server"
+  check_strict_transport_security_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Strict-Transport-Security"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  check_strict_transport_security_header_ssl:
+    type: header
+    url: "https://www.example.com"
+    method: "HEAD"
+    verify_ssl: false
+    header_name: "Strict-Transport-Security"
+    header_rx: "^max-age=31536000$"
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  check_content_security_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Content-Security-Policy"
+    header_rx: "^object-src 'none'; form-action 'self'; frame-ancestors 'self';$"
+  check_content_security_policy_header_report_only_missing:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Content-Security-Policy"
+    config:
+      CONTENT_SECURITY_POLICY_REPORT_ONLY: "yes"
+  check_content_security_policy_header_report_only:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Content-Security-Policy-Report-Only"
+    header_rx: "^object-src 'none'; form-action 'self'; frame-ancestors 'self';$"
+    config:
+      CONTENT_SECURITY_POLICY_REPORT_ONLY: "yes"
+  check_referrer_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Referrer-Policy"
+    header_rx: "^strict-origin-when-cross-origin$"
+  check_permission_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Permissions-Policy"
+    header_rx: "^accelerometer=\\(\\), ambient-light-sensor=\\(\\), autoplay=\\(\\), battery=\\(\\), camera=\\(\\), cross-origin-isolated=\\(\\), display-capture=\\(\\), document-domain=\\(\\), encrypted-media=\\(\\), execution-while-not-rendered=\\(\\), execution-while-out-of-viewport=\\(\\), fullscreen=\\(\\), geolocation=\\(\\), gyroscope=\\(\\), hid=\\(\\), idle-detection=\\(\\), magnetometer=\\(\\), microphone=\\(\\), midi=\\(\\), navigation-override=\\(\\), payment=\\(\\), picture-in-picture=\\(\\), publickey-credentials-get=\\(\\), screen-wake-lock=\\(\\), serial=\\(\\), usb=\\(\\), web-share=\\(\\), xr-spatial-tracking=\\(\\)$"
+  check_feature_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Feature-Policy"
+    header_rx: "^accelerometer 'none'; ambient-light-sensor 'none'; autoplay 'none'; battery 'none'; camera 'none'; display-capture 'none'; document-domain 'none'; encrypted-media 'none'; execution-while-not-rendered 'none'; execution-while-out-of-viewport 'none'; fullscreen 'none'; geolocation 'none'; gyroscope 'none'; layout-animation 'none'; legacy-image-formats 'none'; magnetometer 'none'; microphone 'none'; midi 'none'; navigation-override 'none'; payment 'none'; picture-in-picture 'none'; publickey-credentials-get 'none'; speaker-selection 'none'; sync-xhr 'none'; unoptimized-images 'none'; unsized-media 'none'; usb 'none'; screen-wake-lock 'none'; web-share 'none'; xr-spatial-tracking 'none';$"
+  check_x_frame_options_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-Frame-Options"
+    header_rx: "^SAMEORIGIN$"
+  check_x_content_type_options_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-Content-Type-Options"
+    header_rx: "^nosniff$"
+  check_x_xss_protection_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-XSS-Protection"
+    header_rx: "^1; mode=block$"
+  custom:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-Test"
+    header_rx: "^test$"
+    config:
+      CUSTOM_HEADER: "X-Test: test"
+  keep_x_xss_protection_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-XSS-Protection"
+    header_rx: "^0$"
+    config:
+      KEEP_UPSTREAM_HEADERS: "Content-Security-Policy Permissions-Policy Feature-Policy X-Frame-Options X-XSS-Protection"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  tweaked_remove_headers:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Server"
+    header_rx: "^nginx$"
+    config:
+      REMOVE_HEADERS: "X-Powered-By X-AspNet-Version X-AspNetMvc-Version"
+  tweaked_strict_transport_security_header:
+    type: header
+    url: "https://www.example.com"
+    method: "HEAD"
+    verify_ssl: false
+    header_name: "Strict-Transport-Security"
+    header_rx: "^max-age=86400$"
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      STRICT_TRANSPORT_SECURITY: "max-age=86400"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  tweaked_content_security_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Content-Security-Policy"
+    header_rx: "^object-src 'none';$"
+    config:
+      CONTENT_SECURITY_POLICY: "object-src 'none';"
+  tweaked_referrer_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Referrer-Policy"
+    header_rx: "^no-referrer$"
+    config:
+      REFERRER_POLICY: "no-referrer"
+  tweaked_permissions_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Permissions-Policy"
+    header_rx: "^accelerometer=()$"
+    config:
+      PERMISSIONS_POLICY: "accelerometer=()"
+  tweaked_feature_policy_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "Feature-Policy"
+    header_rx: "^accelerometer 'none';$"
+    config:
+      FEATURE_POLICY: "accelerometer 'none';"
+  tweaked_x_frame_options_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-Frame-Options"
+    header_rx: "^DENY$"
+    config:
+      X_FRAME_OPTIONS: "DENY"
+  tweaked_x_content_type_options_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-Content-Type-Options"
+    config:
+      X_CONTENT_TYPE_OPTIONS: ""
+  tweaked_x_xss_protection_header:
+    type: header
+    url: "http://www.example.com"
+    method: "HEAD"
+    header_name: "X-XSS-Protection"
+    header_rx: "^0$"
+    config:
+      X_XSS_PROTECTION: "0"
+  check_cookie_flags:
+    type: cookie
+    url: "http://www.example.com"
+    cookie_name: "bw_cookie"
+    cookie_rx: "^test$"
+    cookie_http_only_flag: True
+    cookie_same_site_flag: "Lax"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  check_cookie_flags_ssl:
+    type: cookie
+    url: "https://www.example.com"
+    verify_ssl: false
+    cookie_name: "bw_cookie"
+    cookie_rx: "^test$"
+    cookie_secure_flag: True
+    cookie_http_only_flag: True
+    cookie_same_site_flag: "Lax"
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  custom_cookie_flags:
+    type: cookie
+    url: "http://www.example.com"
+    cookie_name: "bw_cookie"
+    cookie_rx: "^test$"
+    cookie_same_site_flag: "Strict"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+      COOKIE_FLAGS: "* SameSite=Strict"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  custom_cookie_flags_ssl:
+    type: cookie
+    url: "https://www.example.com"
+    verify_ssl: false
+    cookie_name: "bw_cookie"
+    cookie_rx: "^test$"
+    cookie_same_site_flag: "Strict"
+    config:
+      GENERATE_SELF_SIGNED_SSL: "yes"
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+      COOKIE_FLAGS: "* SameSite=Strict"
+      COOKIE_AUTO_SECURE_FLAG: "no"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  multiple_cookie_flags:
+    type: cookie
+    url: "http://www.example.com"
+    cookie_name: "bw_cookie"
+    cookie_rx: "^test$"
+    cookie_http_only_flag: True
+    cookie_same_site_flag: "Lax"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+      COOKIE_FLAGS_1: "bw_cookie_1 SameSite=Strict"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+  multiple_cookie_flags_1:
+    type: cookie
+    url: "http://www.example.com"
+    cookie_name: "bw_cookie_1"
+    cookie_rx: "^test1$"
+    cookie_same_site_flag: "Strict"
+    config:
+      REMOTE_PHP: "bw-php"
+      REMOTE_PHP_PATH: "/app"
+      COOKIE_FLAGS_1: "bw_cookie_1 SameSite=Strict"
+    Linux:
+      config:
+        REMOTE_PHP: ""
+        REMOTE_PHP_PATH: ""
+        LOCAL_PHP: "/run/php/php-fpm.sock"
+        LOCAL_PHP_PATH: "/var/www/html"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"

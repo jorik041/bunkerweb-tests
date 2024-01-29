@@ -1,0 +1,25 @@
+integrations: "all"
+
+actions:
+  activated:
+    type: status
+    url: "http://www.example.com"
+    headers:
+      X-Forwarded-For: "10.20.30.30" # custom-api
+    status: 403
+  tweaked_ports:
+    type: status
+    url: "http://www.example.com"
+    headers:
+      X-Forwarded-For: "10.20.30.30" # custom-api
+    status: 200
+    config:
+      REVERSE_SCAN_PORTS: "22 80 443 3128 8080"
+
+config:
+  USE_REVERSE_SCAN: "yes"
+  USE_REAL_IP: "yes"
+  REAL_IP_FROM: "0.0.0.0/0"
+
+labels:
+  bunkerweb.SERVER_NAME: "www.example.com"
